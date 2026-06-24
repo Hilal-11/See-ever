@@ -11,14 +11,10 @@ if (!publishableKey) {
 }
 
 export default function RootLayout() {
-  console.log("🟡 RootLayout rendering, key exists:", !!publishableKey);
   return (
     <SafeAreaProvider>
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+        <Stack screenOptions={{ headerShown: false }} />
       </ClerkProvider>
     </SafeAreaProvider>
   );

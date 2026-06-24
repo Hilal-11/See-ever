@@ -1,9 +1,18 @@
-import { Text, View } from "react-native";
-const Home = () => {
+import { UserProfileView } from "@clerk/expo/native";
+import { useState } from "react";
+import { Button, Modal, View } from "react-native";
+export default function HomeScreen() {
   return (
-    <View>
-      <Text>Home</Text>
+    // <SafeAreaView>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
+      }}
+    >
+      
     </View>
   );
-};
-export default Home;
+}
