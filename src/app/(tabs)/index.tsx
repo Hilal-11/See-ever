@@ -1,7 +1,9 @@
+import { useUser } from "@clerk/expo";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link, useRouter } from "expo-router";
-import { CircleUser, Heart, Search, ShoppingBag } from "lucide-react-native";
+import { CircleUser, Search, ShoppingBag } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -9,17 +11,21 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import SafeAreaView from "../../../components/SafeAreaView";
 import { supabase } from "../../../lib/supabase";
+import { useWishlistStore } from "../../../store/wishlistStore";
 import { Clothes } from "../../../types/types";
 import BannerImages from "./BannerImages";
 
 function ProductCard({ item }: { item: Clothes }) {
   const router = useRouter();
   const [liked, setLiked] = useState(false);
-
+  const { user } = useUser();
+  const ids = useWishlistStore((s) => s.ids);
+  const toggle = useWishlistStore((s) => s.toggle);
   return (
     <>
       <Link href={`/product/${item.id}` as any} asChild>
@@ -51,16 +57,19 @@ function ProductCard({ item }: { item: Clothes }) {
             )}
 
             {/* Heart Icon */}
-            <Pressable
-              className="absolute top-2 left-2 bg-white/90 rounded-full p-2 active:opacity-70 cursor-pointer"
-              onPress={() => setLiked(!liked)}
+            <TouchableOpacity
+              className="absolute top-2 left-2 bg-white rounded-full p-1.5 z-10"
+              onPress={() => {
+                if (!user?.id) return;
+                toggle(item.id, user.id);
+              }}
             >
-              <Heart
-                size={17}
-                color={liked ? "#EF4444" : "#9CA3AF"}
-                fill={liked ? "#EF4444" : "transparent"}
+              <Ionicons
+                name={ids.includes(item.id) ? "heart" : "heart-outline"}
+                size={20}
+                color={ids.includes(item.id) ? "red" : "gray"}
               />
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           {/* Content */}
@@ -274,6 +283,7 @@ export default function HomeScreen() {
           columnWrapperStyle={{ paddingHorizontal: 6 }}
           contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
           showsVerticalScrollIndicator={false}
+          maxToRenderPerBatch={6}
           scrollEventThrottle={16}
         />
       )}

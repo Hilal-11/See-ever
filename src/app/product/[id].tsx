@@ -1,11 +1,12 @@
+import { useUser } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
-  Image,
   Platform,
   ScrollView,
   StatusBar,
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 import CategoryRelatedProducts from "../../../components/RelatedProducts";
 import { supabase } from "../../../lib/supabase";
+import { useCartStore } from "../../../store/cartStore";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface Clothes {
@@ -63,6 +65,9 @@ export default function ProductDetails() {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [categoriesProducts, setCategoriesProducts] = useState<Clothes[]>([]);
 
+  const { user } = useUser();
+  const addToCart = useCartStore((s) => s.addToCart);
+
   const fetchProduct = async () => {
     try {
       setLoading(true);
@@ -102,11 +107,15 @@ export default function ProductDetails() {
     }
   };
 
-  console.log("RELATED PRODUCTS ARE HERE = ", categoriesProducts);
   useEffect(() => {
     fetchProduct();
-    getCategoriesProducts(product?.category || null);
   }, [id]);
+
+  useEffect(() => {
+    if (product?.category) {
+      getCategoriesProducts(product.category);
+    }
+  }, [product]);
 
   // ── LOADING ──
   if (loading) {
@@ -168,7 +177,7 @@ export default function ProductDetails() {
           <Image
             source={{ uri: product.image_url }}
             className="w-full h-full"
-            resizeMode="cover"
+            contentFit="cover"
           />
 
           {/* gradient overlay */}
@@ -341,10 +350,8 @@ export default function ProductDetails() {
           {/* bottom spacing for pinned button */}
         </View>
 
-        
         {/* Related Products based on category */}
         <CategoryRelatedProducts categoriesProducts={categoriesProducts} />
-
       </ScrollView>
 
       {/* ── ADD TO CART (pinned bottom) ── */}
@@ -358,8 +365,25 @@ export default function ProductDetails() {
           }`}
           activeOpacity={0.85}
           disabled={!selectedSize}
-          onPress={() => {
-            // TODO: add to cart logic
+          onPress={async () => {
+            try {
+              if (!user?.id || !selectedSize) return;
+              await addToCart(
+                {
+                  product_id: product.id,
+                  title: product.title,
+                  price: product.price,
+                  image_url: product.image_url,
+                  size: selectedSize,
+                  color: product.color,
+                  quantity: 1,
+                },
+                user.id,
+              );
+              router.back();
+            } catch (err: any) {
+              console.error("Add to cart error:", err.message);
+            }
           }}
         >
           <Ionicons

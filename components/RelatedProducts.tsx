@@ -1,6 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Dimensions, Image, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 interface Clothes {
   id: number;
   title: string;
@@ -32,11 +39,12 @@ const CategoryRelatedProducts = ({
       <Text className="text-lg font-extrabold text-neutral-900 mb-4 px-1 pl-4">
         You May Also Like
       </Text>
-      <View className="flex-row flex-wrap gap-3 justify-center w-full mx-auto">
-        {categoriesProducts.map((item) => (
+      <FlatList
+        data={categoriesProducts} // ✅ All products
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
           <TouchableOpacity
-            key={item.id}
-            className="bg-white rounded-2xl overflow-hidden shadow-sm border border-neutral-400/40"
+            className="bg-white rounded-2xl overflow-hidden shadow-sm border border-neutral-400/40 mx-1.5 mb-4"
             style={{ width: (SCREEN_WIDTH - 52) / 2 }}
             activeOpacity={0.85}
             onPress={() => router.push(`/product/${item.id}`)}
@@ -46,16 +54,8 @@ const CategoryRelatedProducts = ({
               <Image
                 source={{ uri: item.image_url }}
                 className="w-full h-full"
-                resizeMode="cover"
+                contentFit="cover"
               />
-              {/* Discount badge */}
-              {item.discountPercentage > 0 && (
-                <View className="absolute top-2 left-2 bg-red-500 px-2 py-0.5 rounded-full">
-                  <Text className="text-white text-xs font-extrabold">
-                    {item.discountPercentage}% OFF
-                  </Text>
-                </View>
-              )}
             </View>
 
             {/* Info */}
@@ -74,7 +74,7 @@ const CategoryRelatedProducts = ({
               <View className="flex-row items-center gap-1 mb-2">
                 <Ionicons name="star" size={11} color="#F5A623" />
                 <Text className="text-xs font-semibold text-neutral-600">
-                  {item.rating.toFixed(1)}
+                  {parseFloat(item.rating.toString()).toFixed(1)}
                 </Text>
                 <Text className="text-xs text-neutral-400">
                   ({item.reviews})
@@ -84,18 +84,27 @@ const CategoryRelatedProducts = ({
               {/* Price */}
               <View className="flex-row items-center gap-1.5">
                 <Text className="text-base font-extrabold text-neutral-900">
-                  ₹{item.price.toLocaleString()}
+                  ${item.price}
                 </Text>
                 {item.originalPrice > item.price && (
                   <Text className="text-xs text-neutral-400 line-through">
-                    ₹{item.originalPrice.toLocaleString()}
+                    ${item.originalPrice}
                   </Text>
                 )}
               </View>
             </View>
           </TouchableOpacity>
-        ))}
-      </View>
+        )}
+        numColumns={2}
+        columnWrapperStyle={{ justifyContent: "center" }}
+        scrollEnabled={false}
+        contentContainerStyle={{ paddingHorizontal: 4 }}
+        // ✅ Performance optimization
+        maxToRenderPerBatch={6}
+        updateCellsBatchingPeriod={50}
+        removeClippedSubviews={true}
+        initialNumToRender={6}
+      />
     </View>
   );
 };
