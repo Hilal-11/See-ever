@@ -8,6 +8,9 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
    ```bash
    npm install
+   pnpm install
+   bun install
+   
    ```
 
 2. Start the app
